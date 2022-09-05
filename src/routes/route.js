@@ -1,11 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const authersController = require('../controllers/authersController')
 
-router.post('/authors',authorsController.createAuthor)
+const authorsController = require('../controllers/authorsController')
+const blogsController = require('../controllers/blogsController')
 
-router.get('/blogs',blogsController.getBlogs)
+router.post('/authors',authorsController.createAuthor)  // aniket..
 
-router.put('/blogs/:blogId',blogsController.updateBlogs)
+router.get('/blogs',blogsController.getBlogs)       // dipanshu
+
+router.put('/blogs/:blogId',blogsController.updateBlogs)    // jay sharma..
+
+router.delete('/blogs/:blogId',blogsController.deleteBlogsById)
+
+router.delete('/blog',blogsController.deleteBlogs)
 
 module.exports = router;
