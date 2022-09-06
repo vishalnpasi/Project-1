@@ -19,13 +19,13 @@ const blogSchema = mongoose.Schema({
         type:[String],
         required:true
     },
-    subcategory:[[String]],
+    subcategory:[String],
     deletedAt:Date,
     isDeleted:{
         type:Boolean,
         default:false
     },
-    publishedAt:Date,
+    publishedAt:Date,   // give that format "YYYY-MM-DD"
     isPublished: {
         type:Boolean,
         default:false
