@@ -6,7 +6,6 @@ const blogsController = require('../controllers/blogsController')
 
 // post /authors .....create Authors...
 router.post('/authors',authorsController.createAuthor) 
-
 //1) post /blogs.....create Block...
 router.post('/blogs',blogsController.createBlogs)
 
@@ -18,7 +17,7 @@ router.put('/blogs/:blogId',blogsController.updateBlogs)
 //4) delete ) delete blogs By Id..
 router.delete('/blogs/:blogId',blogsController.deleteBlogsById)
 
-//5) delete ) delete blogs By Id..
+//5) delete ) delete blogs By filter..
 router.delete('/blogs',blogsController.deleteBlogsByFilter)
 module.exports = router;
 

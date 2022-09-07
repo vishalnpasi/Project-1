@@ -5,8 +5,6 @@ let regpass = /^.*(?=.{8,})(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#&$%?]).*$/
 
 let regname =  /^[a-zA-Z]+([_ -]?[a-zA-Z])*$/
 
-
-
 const createAuthor = async function (req, res) {
    
     try {
