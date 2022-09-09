@@ -1,13 +1,17 @@
 const blogModel = require('../models/blogModel')
 const authorModel = require('../models/authorModel')
 const mongoose = require('mongoose')
-let regname = /^[a-zA-Z0-9]+([_ -]?[a-zA-Z0-9])*$/
+const moment = require('moment')
+
+let regname = /^[a-zA-Z]+([_ -]?[a-zA-Z])*$/
+let regfortags = /^[a-zA-Z0-9]+([_ -]?[a-zA-Z0-9])*$/
 // 1) post ) createBlogs...
 const createBlogs = async function (req, res) {
     try {
         if (Object.keys(req.body).length == 0) return res.status(400).send({ status: false, msg: "data is not given" })
 
         const { title, body, authorId, tags, category, subcategory, isDeleted, isPublished, publishedAt, deletedAt } = req.body
+        if (!authorId) return res.status(400).send({ status: false, msg: "AuthorId is Mendatory" })
         if (!mongoose.Types.ObjectId.isValid(authorId)) return res.status(400).send({ status: false, msg: "AuthorId is not Valid" })
 
         let result = await authorModel.findById(authorId)
@@ -24,20 +28,34 @@ const createBlogs = async function (req, res) {
         if (!category) return res.status(400).send({ status: false, msg: "category is a mandatory thing" })
 
         if (!regname.test(category)) return res.status(400).send({ status: false, msg: "pls enter correct category" })
-
-        if (typeof (tags) != "object") return res.status(400).send({ status: false, msg: "tags type is wrong" })
-        for (let i = 0; i < tags.length; i++) {
-            if (!regname.test(tags[i])) return res.status(400).send({ status: false, msg: "pls write tags in a correct format" })
+        if (tags) {
+            if (typeof (tags) != "object") return res.status(400).send({ status: false, msg: "tags type is wrong" })
+            for (let i = 0; i < tags.length; i++) {
+                if (!regfortags.test(tags[i])) return res.status(400).send({ status: false, msg: "pls write tags in a correct format" })
+            }
         }
-        if (typeof (subcategory) != "object") return res.status(400).send({ status: false, msg: "subcategory type is wrong" })
-        for (let i = 0; i < subcategory.length; i++) {
-            if (!regname.test(subcategory[i])) return res.status(400).send({ status: false, msg: "pls write Subcategory in a correct format" })
+        if (subcategory) {
+            if (typeof (subcategory) != "object") return res.status(400).send({ status: false, msg: "subcategory type is wrong" })
+            for (let i = 0; i < subcategory.length; i++) {
+                if (!regfortags.test(subcategory[i])) return res.status(400).send({ status: false, msg: "pls write Subcategory in a correct format" })
+            }
         }
-        if (isPublished === true) {
-            if (!publishedAt) return res.status(400).send({ status: false, msg: "published  date is a mandatory thing" })
-            const moment = require('moment')
-            if (!moment(publishedAt, 'YYYY-MM-DD', true).isValid())
-                return res.status(400).send({ status: false, msg: "Plz write publishedAt in Valid format" })
+        if (isPublished) {
+            if (typeof (isPublished) != "boolean")
+                return res.status(400).send({ status: false, msg: "isPublished is wrong type" })
+            if (isPublished === true) {
+                if (!publishedAt) return res.status(400).send({ status: false, msg: "published  date is a mandatory thing" })
+                if (!moment(publishedAt, 'YYYY-MM-DD', true).isValid())
+                    return res.status(400).send({ status: false, msg: "Plz write publishedAt in Valid format" })
+            }
+        }
+        if (isDeleted) {
+            if (typeof (isDeleted) != 'boolean')
+                return res.status(400).send({ status: false, msg: "isDeleted is wrong type" })
+            if (isDeleted === true) {
+                if (!moment(deletedAt, 'YYYY-MM-DD', true).isValid())
+                    return res.status(400).send({ status: false, msg: "Plz write DeletedAt in Valid format" })
+            }
         }
         let savedData = await blogModel.create(req.body)
 
@@ -75,19 +93,37 @@ const updateBlogs = async function (req, res) {
         let data = await blogModel.findById(blogId)
         if (data.isDeleted === true) return res.status(404).send({ status: false, msg: "data not found" })
 
+        const { title, body, tags, subcategory } = req.body
+
         let blogData = {}
-        if (req.body.title) blogData.title = req.body.title
-
-        if (req.body.body) blogData.body = req.body.body
-
+        if (title) {
+            if (!regname.test(title))
+                return res.status(400).send({ status: false, msg: "pls enter correct title name" })
+            blogData.title = title
+        }
+        if (body) {
+            if (!regname.test(body))
+                return res.status(400).send({ status: false, msg: "pls enter correct body Name" })
+            blogData.body = body
+        }
         blogData.isPublished = true;
         blogData.publishedAt = Date.now()
 
         let blogTags = {}
-        if (req.body.tags) blogTags.tags = req.body.tags
-
-        if (req.body.subcategory) blogTags.subcategory = req.body.subcategory
-
+        if (tags) {
+            if (typeof (tags) != "object") return res.status(400).send({ status: false, msg: "tags type is wrong" })
+            for (let i = 0; i < tags.length; i++) {
+                if (!regfortags.test(tags[i])) return res.status(400).send({ status: false, msg: "pls write tags in a correct format" })
+            }
+            blogTags.tags = tags
+        }
+        if (subcategory) {
+            if (typeof (subcategory) != "object") return res.status(400).send({ status: false, msg: "subcategory type is wrong" })
+            for (let i = 0; i < subcategory.length; i++) {
+                if (!regfortags.test(subcategory[i])) return res.status(400).send({ status: false, msg: "pls write Subcategory in a correct format" })
+            }
+            blogTags.subcategory = subcategory
+        }
         let saveddata = await blogModel.findOneAndUpdate({ _id: blogId }, { $set: blogData, $addToSet: blogTags }, { new: true })
         res.status(200).send({ status: true, data: saveddata })
     }
@@ -103,7 +139,7 @@ const deleteBlogsById = async function (req, res) {
 
         if (!mongoose.Types.ObjectId.isValid(blogId))
             return res.status(400).send({ status: false, msg: "blogId Is invilid" })
-            
+
         let blogData = await blogModel.findOneAndUpdate({ $and: [{ _id: blogId }, { isDeleted: false }] }, { isDeleted: true, deletedAt: Date.now() }, { new: true })
         if (!blogData)
             return res.status(404).send({ status: false, msg: "DATA NOT FOUND" })
@@ -119,11 +155,12 @@ const deleteBlogsById = async function (req, res) {
 const deleteBlogsByFilter = async function (req, res) {
 
     try {
+        
         let queryData = req.query
         let blogData = await blogModel.updateMany({ $and: [queryData, { isPublished: false, isDeleted: false }] }, { $set: { isDeleted: true, deletedAt: Date.now() } })
         if (blogData.modifiedCount == 0)
             return res.status(404).send({ status: false, msg: "DATA NOT FOUND" })
-        res.status(200).send({ status: true, mgs: "deleted completed" })
+        return res.status(200).send({ status: true, mgs: "Data deleted completed" })
     }
     catch (err) {
         return res.status(500).send({ status: false, msg: err.message })

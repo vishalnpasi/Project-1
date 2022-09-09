@@ -42,7 +42,7 @@ const authorisation = async function (req, res, next) {
 const deleteAuthorisation = async function (req, res, next) {
     try {
 
-        if(Object.keys(yreq.quer).length ==0) 
+        if(Object.keys(req.query).length ==0) 
             return res.status(400).send({status:false,msg:"PLS give some filter"})
         
         let data = req.query
