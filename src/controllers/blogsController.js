@@ -71,7 +71,12 @@ const getBlogs = async function (req, res) {
 
     try {
 
-        let findData = req.query;
+        let findData = req.query;                   
+        if (findData.authorId )
+        {
+            if(!mongoose.Types.ObjectId.isValid(findData.authorId))
+                return res.status(400).send({ status: false, msg: "authorId is invilid" })
+        }
         let result = await blogModel.find({ $and: [findData, { isDeleted: false, isPublished: true }] });
         if (result.length == 0) return res.status(404).send({ status: false, msg: "DATA NOT FOUND" })
         res.status(200).send({ status: true, data: result })
@@ -157,7 +162,7 @@ const deleteBlogsByFilter = async function (req, res) {
     try {
         
         let queryData = req.query
-        let blogData = await blogModel.updateMany({ $and: [queryData, { isPublished: false, isDeleted: false }] }, { $set: { isDeleted: true, deletedAt: Date.now() } })
+        let blogData = await blogModel.updateMany({ $and: [queryData, {isDeleted: false }] }, { $set: { isDeleted: true, deletedAt: Date.now() } })
         if (blogData.modifiedCount == 0)
             return res.status(404).send({ status: false, msg: "DATA NOT FOUND" })
         return res.status(200).send({ status: true, mgs: "Data deleted completed" })
